@@ -16,11 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-// TALLER ARCHIVOS: para guardar la partida con ObjectOutputStream, Personaje debe volverse Serializable
-// (con serialVersionUID). Piensa que campos son transient y que clases anidadas (Inventario, Pocion, Arma,
-// Gremio, EstadoEfecto, enums) tambien deben ser Serializable, o tendras NotSerializableException.
-// Ojo: Gremio y Personaje se referencian entre si (la serializacion maneja el ciclo).
-public abstract class Personaje implements ICombatiente {
+public abstract class Personaje implements ICombatiente, java.io.Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private static final int VIDA_BASE = 100;
     private static final int ATAQUE_BASE = 10;
@@ -42,6 +40,9 @@ public abstract class Personaje implements ICombatiente {
     private final Inventario<Pocion> inventario = new Inventario<>(CAPACIDAD_INVENTARIO); // composicion
     private final Set<String> habilidades = new HashSet<>();
     private final Map<String, EstadoEfecto> efectos = new LinkedHashMap<>();
+
+    private transient Map<String, Thread> hilosEfectos = new java.util.concurrent.ConcurrentHashMap<>();
+    private transient java.util.concurrent.locks.ReentrantLock lockVida = new java.util.concurrent.locks.ReentrantLock();
 
     protected Personaje(String nombre, TipoPersonaje tipo) {
         this(nombre, tipo, VIDA_BASE, ATAQUE_BASE, DEFENSA_BASE);
@@ -96,17 +97,27 @@ public abstract class Personaje implements ICombatiente {
 
     // ---- vida
 
-    public void recibirDanio(int cantidad) {
+    public synchronized void recibirDanio(int cantidad) {
         if (cantidad < 0) {
             throw new IllegalArgumentException("El danio no puede ser negativo");
         }
-        // TALLER CONCURRENCIA: lee, calcula y escribe la vida en pasos separados sin proteccion.
-        // Con varios hilos sobre el mismo Personaje (aqui y en curar), el resultado no es seguro.
         setVida(vida - cantidad);
     }
 
+    public void recibirDanioConLock(int cantidad) {
+        if (lockVida == null) {
+            lockVida = new java.util.concurrent.locks.ReentrantLock();
+        }
+        lockVida.lock();
+        try {
+            recibirDanio(cantidad);
+        } finally {
+            lockVida.unlock();
+        }
+    }
+
     /** @return vida realmente recuperada */
-    public int curar(int cantidad) {
+    public synchronized int curar(int cantidad) {
         if (cantidad < 0) {
             throw new IllegalArgumentException("La curacion no puede ser negativa");
         }
@@ -118,27 +129,34 @@ public abstract class Personaje implements ICombatiente {
         return vida - vidaAntes;
     }
 
-    public void restaurarVida() {
+    public synchronized void restaurarVida() {
+        interrumpirEfectos();
         efectos.clear();
         estado = EstadoPersonaje.VIVO;
         vida = vidaMaxima;
     }
 
     @Override
-    public boolean estaVivo() {
+    public synchronized boolean estaVivo() {
         return estado != EstadoPersonaje.MUERTO;
     }
 
-    // ---- efectos DoT / HoT (hoy se procesan por turno, de forma secuencial)
+    // ---- efectos DoT / HoT
 
-    public void aplicarEfecto(EstadoEfecto efecto) {
+    public synchronized void aplicarEfecto(EstadoEfecto efecto) {
         efectos.put(efecto.getNombre(), efecto.copia());
         if (efecto.esDanio() && estado == EstadoPersonaje.VIVO) {
             estado = EstadoPersonaje.ENVENENADO;
         }
     }
 
-    public boolean quitarEfecto(String nombreEfecto) {
+    public synchronized boolean quitarEfecto(String nombreEfecto) {
+        if (hilosEfectos != null) {
+            Thread h = hilosEfectos.remove(nombreEfecto);
+            if (h != null && h.isAlive()) {
+                h.interrupt();
+            }
+        }
         if (efectos.remove(nombreEfecto) == null) {
             return false;
         }
@@ -146,7 +164,7 @@ public abstract class Personaje implements ICombatiente {
         return true;
     }
 
-    public void quitarEfectosDanio() {
+    public synchronized void quitarEfectosDanio() {
         for (String nombreEfecto : new ArrayList<>(efectos.keySet())) {
             if (efectos.get(nombreEfecto).esDanio()) {
                 quitarEfecto(nombreEfecto);
@@ -154,13 +172,29 @@ public abstract class Personaje implements ICombatiente {
         }
     }
 
+    public synchronized void registrarHiloEfecto(String nombreEfecto, Thread hilo) {
+        if (hilosEfectos == null) {
+            hilosEfectos = new java.util.concurrent.ConcurrentHashMap<>();
+        }
+        hilosEfectos.put(nombreEfecto, hilo);
+    }
+
+    public synchronized void interrumpirEfectos() {
+        if (hilosEfectos != null) {
+            for (Thread h : hilosEfectos.values()) {
+                if (h != null && h.isAlive()) {
+                    h.interrupt();
+                }
+            }
+            hilosEfectos.clear();
+        }
+    }
+
     /**
-     * Aplica un tick de cada efecto activo.
+     * Aplica un tick de cada efecto activo de forma sincronizada.
      * @return mensajes para el registro de combate
      */
-    public List<String> procesarEfectos() {
-        // TALLER CONCURRENCIA: cada efecto se procesa aqui, turno a turno. Piensa que pasaria
-        // si cada uno corriera por su cuenta y hubiera que cancelarlo a mitad de camino.
+    public synchronized List<String> procesarEfectos() {
         List<String> mensajes = new ArrayList<>();
         Iterator<EstadoEfecto> iterador = efectos.values().iterator();
         while (iterador.hasNext()) {
@@ -269,19 +303,20 @@ public abstract class Personaje implements ICombatiente {
 
     // ---- getters y setters validados
 
-    public void setVida(int nuevaVida) {
+    public synchronized void setVida(int nuevaVida) {
         vida = Math.max(0, Math.min(nuevaVida, vidaMaxima));
         if (vida == 0) {
             estado = EstadoPersonaje.MUERTO;
+            interrumpirEfectos();
         }
     }
 
-    public void setNombre(String nombre) {
+    public synchronized void setNombre(String nombre) {
         validarNombre(nombre);
         this.nombre = nombre;
     }
 
-    public void setVidaMaxima(int vidaMaxima) {
+    public synchronized void setVidaMaxima(int vidaMaxima) {
         if (vidaMaxima <= 0) {
             throw new IllegalArgumentException("La vida maxima debe ser positiva");
         }
@@ -293,7 +328,7 @@ public abstract class Personaje implements ICombatiente {
         return defensaBase + tipo.getBonificadorDefensa();
     }
 
-    public String getNombre() {
+    public synchronized String getNombre() {
         return nombre;
     }
 
@@ -301,15 +336,15 @@ public abstract class Personaje implements ICombatiente {
         return tipo;
     }
 
-    public int getVida() {
+    public synchronized int getVida() {
         return vida;
     }
 
-    public int getVidaMaxima() {
+    public synchronized int getVidaMaxima() {
         return vidaMaxima;
     }
 
-    public EstadoPersonaje getEstado() {
+    public synchronized EstadoPersonaje getEstado() {
         return estado;
     }
 
@@ -329,7 +364,13 @@ public abstract class Personaje implements ICombatiente {
         return Collections.unmodifiableSet(habilidades);
     }
 
-    public Collection<EstadoEfecto> getEfectos() {
+    public synchronized Collection<EstadoEfecto> getEfectos() {
         return Collections.unmodifiableCollection(efectos.values());
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        this.hilosEfectos = new java.util.concurrent.ConcurrentHashMap<>();
+        this.lockVida = new java.util.concurrent.locks.ReentrantLock();
     }
 }

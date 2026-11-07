@@ -5,7 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 /** Agregacion: disolver el escuadron no destruye a los personajes. */
-public class Escuadron {
+public class Escuadron implements java.io.Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final String nombre;
     private final List<Personaje> miembros = new ArrayList<>();

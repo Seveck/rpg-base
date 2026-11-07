@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 /** Catalogo de monstruos (Map nombre -> plantilla) y contador de derrotas por monstruo. */
-public class Bestiario {
+public class Bestiario implements java.io.Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final Map<String, Enemigo> catalogo = new LinkedHashMap<>();
     private final Map<String, Integer> derrotados = new LinkedHashMap<>();

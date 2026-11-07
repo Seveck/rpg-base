@@ -22,12 +22,37 @@ public class TorneoManager {
     public Personaje jugarTorneo() {
         List<Personaje> gladiadores = crearGladiadores().getMiembros();
 
-        // TALLER CONCURRENCIA: las dos semifinales se simulan una tras otra en el hilo principal.
-        // La final solo puede empezar cuando ambas hayan terminado.
-        Personaje finalista1 = simularSemifinal(gladiadores.get(0), gladiadores.get(1));
-        Personaje finalista2 = simularSemifinal(gladiadores.get(2), gladiadores.get(3));
+        Personaje[] finalistas = new Personaje[2];
 
-        return simularFinal(finalista1, finalista2);
+        Thread hiloSemi1 = new Thread(() -> {
+            finalistas[0] = simularSemifinal(gladiadores.get(0), gladiadores.get(1));
+        }, "Semifinal-1");
+
+        Thread hiloSemi2 = new Thread(() -> {
+            finalistas[1] = simularSemifinal(gladiadores.get(2), gladiadores.get(3));
+        }, "Semifinal-2");
+
+        System.out.printf("[Ciclo de vida] Hilo Semifinal 1 antes de start(): %s%n", hiloSemi1.getState());
+        System.out.printf("[Ciclo de vida] Hilo Semifinal 2 antes de start(): %s%n", hiloSemi2.getState());
+
+        hiloSemi1.start();
+        hiloSemi2.start();
+
+        System.out.printf("[Ciclo de vida] Hilo Semifinal 1 en ejecucion: %s%n", hiloSemi1.getState());
+        System.out.printf("[Ciclo de vida] Hilo Semifinal 2 en ejecucion: %s%n", hiloSemi2.getState());
+
+        try {
+            hiloSemi1.join();
+            hiloSemi2.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.out.println("Torneo interrumpido mientras se esperaba a las semifinales.");
+        }
+
+        System.out.printf("[Ciclo de vida] Hilo Semifinal 1 despues de join(): %s%n", hiloSemi1.getState());
+        System.out.printf("[Ciclo de vida] Hilo Semifinal 2 despues de join(): %s%n", hiloSemi2.getState());
+
+        return simularFinal(finalistas[0], finalistas[1]);
     }
 
     public Personaje simularSemifinal(Personaje a, Personaje b) {

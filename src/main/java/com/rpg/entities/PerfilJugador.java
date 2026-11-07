@@ -4,12 +4,23 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 
-// TALLER ARCHIVOS: candidata a Serializable (victorias, derrotas y logros son parte de la partida).
-public class PerfilJugador {
+public class PerfilJugador implements java.io.Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private int victorias;
     private int derrotas;
     private final Set<String> logros = new TreeSet<>();
+
+    private transient int partidasJugadasSesion = 0;
+
+    public void registrarPartidaSesion() {
+        partidasJugadasSesion++;
+    }
+
+    public int getPartidasJugadasSesion() {
+        return partidasJugadasSesion;
+    }
 
     public void registrarVictoria() {
         victorias++;

@@ -9,3 +9,5 @@ target/
 *.log
 *.dat
 partidas/
+.rag_system/
+
