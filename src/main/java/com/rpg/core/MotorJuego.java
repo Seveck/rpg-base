@@ -62,6 +62,16 @@ public class MotorJuego {
         guardarProgreso();
     }
 
+    public void iniciarCombateRapidoConHeroe(Personaje heroe) {
+        if (heroe == null) {
+            return;
+        }
+        entregarKitInicial(heroe);
+        heroe.unirseAGremio(gremio);
+        this.heroeActual = heroe;
+        combateRapido();
+    }
+
     public void jugarTorneo() {
         registro.limpiar();
         Personaje campeon = torneo.jugarTorneo();

@@ -1,0 +1,78 @@
+========================================================================================
+DIAGRAMA DE FLUJO: OPCION "INSERTAR HEROE" (ARQUITECTURA MVC + DAO + JDBC)
+Proyecto: Simulador RPG (Unidad 5.2 - Registro de Heroes Persistente)
+========================================================================================
+
++--------------------------------------------------------------------------------------+
+| 1. CAPA DE PRESENTACION / VISTA (HeroeUI)                                            |
+|                                                                                      |
+|   a) El usuario selecciona la opcion 1 ("Insertar heroe").                           |
+|   b) La UI solicita mediante consola los datos:                                      |
+|      - nombre ("Legolas")                                                            |
+|      - tipo ("guerrero")                                                             |
+|      - nivel (1)                                                                     |
+|      - vidaMaxima asignada segun clase (120 para guerrero / 80 para mago)            |
+|   c) La View NO ejecuta codigo SQL ni conoce la BD.                                  |
+|   d) Invoca al controlador:                                                          |
+|      controller.registrarHeroe("Legolas", "guerrero", 120, 1);                       |
++------------------------------------------+-------------------------------------------+
+                                           |
+                                           | Llama a metodo con parametros
+                                           v
++--------------------------------------------------------------------------------------+
+| 2. CAPA DE CONTROLADOR (HeroeController)                                             |
+|                                                                                      |
+|   a) Valida reglas de negocio:                                                       |
+|      - nombre != null && !nombre.trim().isEmpty()                                    |
+|      - tipo valido ("guerrero" o "mago")                                             |
+|      - nivel >= 1                                                                    |
+|      - vidaMaxima > 0                                                                |
+|   b) Si alguna validacion falla, retorna mensaje de error a la View sin llamar a BD. |
+|   c) Si los datos son validos, instancia el POJO:                                    |
+|      Heroe heroe = new Heroe("Legolas", "guerrero", 120, 1);                         |
+|   d) Delega la persistencia al DAO:                                                  |
+|      int filas = heroeDAO.insertar(heroe);                                           |
++------------------------------------------+-------------------------------------------+
+                                           |
+                                           | Pasa objeto POJO Heroe
+                                           v
++--------------------------------------------------------------------------------------+
+| 3. CAPA DE ACCESO A DATOS (HeroeDAO & ConexionDB)                                    |
+|                                                                                      |
+|   a) HeroeDAO solicita una conexion:                                                 |
+|      ConexionDB.getConexion() -> Lee config.txt -> DriverManager.getConnection(...)  |
+|   b) Con try-with-resources abre Connection y PreparedStatement con ?:               |
+|      "INSERT INTO heroes (nombre, tipo, vida_maxima, nivel) VALUES (?, ?, ?, ?)"     |
+|   c) Setea parametros evitando inyeccion SQL:                                        |
+|      ps.setString(1, heroe.getNombre());                                             |
+|      ps.setString(2, heroe.getTipo());                                               |
+|      ps.setInt(3, heroe.getVidaMaxima());                                            |
+|      ps.setInt(4, heroe.getNivel());                                                 |
+|   d) Ejecuta la sentencia contra el motor:                                           |
+|      int filas = ps.executeUpdate();                                                 |
+|   e) Recupera la clave primaria generada (ID auto-increment):                        |
+|      heroe.setId(idGenerado);                                                        |
+|   f) Cierre automatico de PreparedStatement y Connection al salir del bloque try.    |
+|   g) Retorna el numero de filas afectadas (1 si exito, 0 si fallo).                  |
++------------------------------------------+-------------------------------------------+
+                                           |
+                                           | Envia consulta parametrizada via TCP
+                                           v
++--------------------------------------------------------------------------------------+
+| 4. MOTOR DE BASE DE DATOS (MySQL / MariaDB: rpg_grupal_db.heroes)                    |
+|                                                                                      |
+|   a) Valida restricciones (PK, UNIQUE en nombre, CHECK en tipo, vida y nivel).       |
+|   b) Inserta el nuevo registro en la tabla 'heroes'.                                 |
+|   c) Retorna a JDBC el resultado: 1 fila afectada y el ID asignado.                  |
++------------------------------------------+-------------------------------------------+
+                                           |
+                                           | Retorna filas afectadas / ID
+                                           v
++--------------------------------------------------------------------------------------+
+| 5. RETORNO DE LA RESPUESTA AL USUARIO (DAO -> Controller -> View -> Pantalla)        |
+|                                                                                      |
+|   HeroeDAO:       Retorna 1 fila afectada al Controller.                             |
+|   HeroeController: Evalua (filas > 0) y construye mensaje informativo:                |
+|                   "Heroe registrado con exito con ID: 3"                             |
+|   HeroeUI:        Imprime el mensaje en consola al usuario.                          |
++--------------------------------------------------------------------------------------+

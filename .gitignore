@@ -10,4 +10,5 @@ target/
 *.dat
 partidas/
 .rag_system/
+config.txt
 
