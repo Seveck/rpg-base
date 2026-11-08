@@ -9,7 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Catalogo de monstruos (Map nombre -> plantilla) y contador de derrotas por monstruo. */
+/** Catalogo de monstruos y contador de derrotas por monstruo. */
 public class Bestiario implements java.io.Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -34,7 +34,7 @@ public class Bestiario implements java.io.Serializable {
         return new ArrayList<>(catalogo.keySet());
     }
 
-    /** Busca ignorando mayusculas (equalsIgnoreCase, nunca ==). @return copia nueva o null si no existe */
+    /** Busca ignorando mayusculas. @return copia nueva o null si no existe */
     public Enemigo crearEnemigo(String nombre) {
         for (Map.Entry<String, Enemigo> entrada : catalogo.entrySet()) {
             if (entrada.getKey().equalsIgnoreCase(nombre)) {

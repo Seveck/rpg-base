@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Capa DAO (Data Access Object) para gestionar la persistencia
+ * Capa DAO para gestionar la persistencia
  * de la entidad Heroe en la base de datos MySQL.
  * Toda operacion utiliza PreparedStatement y try-with-resources.
  */
@@ -54,7 +54,6 @@ public class HeroeDAO {
 
     /**
      * Obtiene la lista completa de heroes registrados en la base de datos.
-     * Utiliza executeQuery y recorre con while (rs.next()).
      */
     public List<Heroe> listar() {
         List<Heroe> heroes = new ArrayList<>();
@@ -87,8 +86,8 @@ public class HeroeDAO {
     }
 
     /**
-     * Busca heroes filtrados por su tipo (guerrero o mago).
-     * Utiliza executeQuery con parametro ? para prevenir inyeccion SQL.
+     * Busca heroes filtrados por su tipo o clase.
+     * Utiliza PreparedStatement con parametro para prevenir inyeccion SQL.
      */
     public List<Heroe> buscarPorTipo(String tipo) {
         List<Heroe> heroes = new ArrayList<>();
@@ -157,7 +156,7 @@ public class HeroeDAO {
 
     /**
      * Actualiza el nivel de un heroe existente por su ID.
-     * Retorna el numero de filas afectadas (0 si no existe el ID).
+     * Retorna el numero de filas afectadas.
      */
     public int actualizarNivel(int id, int nivel) {
         String sql = "UPDATE heroes SET nivel = ? WHERE id = ?";
@@ -181,7 +180,7 @@ public class HeroeDAO {
 
     /**
      * Elimina un heroe de la base de datos por su ID.
-     * Retorna el numero de filas afectadas (0 si no existe el ID).
+     * Retorna el numero de filas afectadas.
      */
     public int eliminar(int id) {
         String sql = "DELETE FROM heroes WHERE id = ?";

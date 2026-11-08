@@ -10,24 +10,14 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /*
- * EXPLICACION DE LA URL DE CONEXION JDBC:
+ * Explicacion de la URL de conexion JDBC:
  * Formato general: jdbc:mysql://localhost:3306/rpg_grupal_db
  *
- * 1. Protocolo (jdbc):
- *    Indica la API estandar de Java para conectar con bases de datos relacionales (Java Database Connectivity).
- *
- * 2. Subprotocolo / Driver (mysql):
- *    Especifica el motor de base de datos concreto con el cual comunicarse. Le indica al DriverManager
- *    que debe cargar y delegar en el controlador de MySQL (com.mysql.cj.jdbc.Driver provisto por mysql-connector-j).
- *
- * 3. Host / Servidor (localhost o 127.0.0.1):
- *    Direccion de red o nombre de host de la maquina donde se encuentra ejecutandose el servidor de MySQL.
- *
- * 4. Puerto (3306):
- *    Puerto TCP estandar en el cual el servicio de base de datos MySQL o MariaDB escucha las conexiones entrantes.
- *
- * 5. Esquema / Base de datos (rpg_grupal_db):
- *    Nombre de la base de datos especifica a la que la aplicacion se conectara e interactuara con sus tablas.
+ * 1. Protocolo: jdbc indica la API de Java para bases de datos relacionales.
+ * 2. Subprotocolo o Driver: mysql especifica el controlador para el motor de base de datos.
+ * 3. Host o Servidor: localhost o 127.0.0.1 es la direccion de red del servidor.
+ * 4. Puerto: 3306 es el puerto TCP donde escucha MySQL.
+ * 5. Esquema o Base de datos: rpg_grupal_db es la base de datos destino.
  */
 public class ConexionDB {
 
@@ -43,6 +33,17 @@ public class ConexionDB {
      */
     public static Connection getConexion() {
         File archivo = new File(ARCHIVO_CONFIG);
+        if (!archivo.exists()) {
+            File alt = new File("IdeaProjects/rpg-base", ARCHIVO_CONFIG);
+            if (alt.exists()) {
+                archivo = alt;
+            } else {
+                alt = new File("rpg-base", ARCHIVO_CONFIG);
+                if (alt.exists()) {
+                    archivo = alt;
+                }
+            }
+        }
 
         if (!archivo.exists()) {
             System.out.println("Error: El archivo " + ARCHIVO_CONFIG + " no existe en la raiz del proyecto.");

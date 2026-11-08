@@ -37,7 +37,7 @@ public abstract class Personaje implements ICombatiente, java.io.Serializable {
 
     private Arma arma;                  // asociacion 0..1
     private Gremio gremio;              // asociacion bidireccional 0..1
-    private final Inventario<Pocion> inventario = new Inventario<>(CAPACIDAD_INVENTARIO); // composicion
+    private final Inventario<Pocion> inventario = new Inventario<>(CAPACIDAD_INVENTARIO);
     private final Set<String> habilidades = new HashSet<>();
     private final Map<String, EstadoEfecto> efectos = new LinkedHashMap<>();
 
@@ -75,7 +75,7 @@ public abstract class Personaje implements ICombatiente, java.io.Serializable {
      */
     public abstract String realizarAtaqueEspecial(Personaje objetivo) throws SinManaException;
 
-    /** Hook que se ejecuta al comenzar el turno (por ejemplo, el mago regenera mana). */
+    /** Accion ejecutada al inicio de cada turno de combate. */
     public void alIniciarTurno() {
     }
 
@@ -246,7 +246,7 @@ public abstract class Personaje implements ICombatiente, java.io.Serializable {
         }
     }
 
-    /** @return true si estaba aturdido (y por tanto pierde este turno) */
+    /** @return true si estaba aturdido y pierde el turno */
     public boolean consumirAturdimiento() {
         boolean estabaAturdido = estado == EstadoPersonaje.ATURDIDO;
         if (estabaAturdido) {
@@ -296,7 +296,7 @@ public abstract class Personaje implements ICombatiente, java.io.Serializable {
         anterior.removerMiembro(this);
     }
 
-    /** @return false si la habilidad ya estaba aprendida (el Set rechaza duplicados) */
+    /** @return false si la habilidad ya estaba aprendida */
     public boolean aprenderHabilidad(String habilidad) {
         return habilidades.add(habilidad);
     }

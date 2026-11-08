@@ -2,7 +2,7 @@ package com.rpg.entities;
 
 import com.rpg.entities.enums.TipoEfecto;
 
-/** Efecto periodico (DoT o HoT): cambia la vida un valor fijo en cada tick durante cierta duracion. */
+/** Efecto periodico que modifica la vida en cada turno durante cierta duracion. */
 public class EstadoEfecto implements java.io.Serializable {
 
     private static final long serialVersionUID = 1L;

@@ -18,8 +18,8 @@ public class Pocion implements java.io.Serializable {
     }
 
     /**
-     * @param efecto   efecto que se aplica al usarla (por ejemplo un HoT), o null
-     * @param purifica si es true, elimina los efectos de dano continuo (antidoto)
+     * @param efecto   efecto que se aplica al usarla, o null
+     * @param purifica si es true, elimina los efectos de dano continuo
      */
     public Pocion(String nombre, int curacion, RaridadItem raridad, EstadoEfecto efecto, boolean purifica) {
         this.nombre = nombre;

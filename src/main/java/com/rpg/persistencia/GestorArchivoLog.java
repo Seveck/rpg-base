@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Gestor del historial de combate en formato de texto plano (.txt). */
+/** Gestor del historial de combate en formato de texto plano. */
 public class GestorArchivoLog {
 
     private static final String CARPETA_DEFECTO = "partidas";

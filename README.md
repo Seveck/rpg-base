@@ -13,7 +13,7 @@ de forma **100 % secuencial**: todo ocurre en un unico hilo, una cosa despues de
 
 ## Como compilar y ejecutar
 
-Con Maven (JDK 21):
+Con Maven (JDK 17):
 
 ```
 mvn -q compile

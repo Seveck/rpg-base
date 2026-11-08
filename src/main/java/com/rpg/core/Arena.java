@@ -63,7 +63,7 @@ public class Arena {
         }
     }
 
-    /** Turno completo controlado por el programa (enemigos y gladiadores). */
+    /** Turno completo para enemigos y gladiadores. */
     public void turnoAutomatico(Personaje atacante, Personaje defensor) {
         if (!atacante.estaVivo() || !defensor.estaVivo() || !iniciarTurno(atacante)) {
             return;
@@ -75,7 +75,7 @@ public class Arena {
         atacar(atacante, defensor);
     }
 
-    /** Pelea hasta que uno cae (o se acaban las rondas). @return el ganador */
+    /** Pelea hasta que un combatiente cae o se acaban las rondas. @return el ganador */
     public Personaje duelo(Personaje a, Personaje b) {
         for (int ronda = 1; ronda <= MAXIMO_RONDAS && a.estaVivo() && b.estaVivo(); ronda++) {
             registro.agregar("-- Ronda %d --", ronda);

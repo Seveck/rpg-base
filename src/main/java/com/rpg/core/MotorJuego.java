@@ -161,7 +161,7 @@ public class MotorJuego {
     }
 
     /**
-     * Turno del jugador. Las acciones que no gastan turno (ver estado, cancelar) vuelven a pedir.
+     * Turno del jugador. Las acciones que no consumen turno vuelven a solicitar accion.
      * @return true si el jugador decidio huir
      */
     private boolean turnoJugador(Personaje jugador, Enemigo enemigo) {
@@ -291,7 +291,7 @@ public class MotorJuego {
     // ---- guardado y persistencia
 
     /**
-     * Guarda las estadisticas en memoria y en disco (serializacion de EstadoPartida).
+     * Guarda las estadisticas en memoria y en disco con EstadoPartida.
      */
     public synchronized void guardarProgreso() {
         guardarProgresoSilencioso();

@@ -11,9 +11,8 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 /**
- * Capa de Presentacion / Vista (View) en la arquitectura MVC.
- * Gestiona toda la interaccion por consola con el usuario.
- * No contiene ninguna linea de codigo JDBC ni sentencias SQL.
+ * Interfaz de usuario por consola en la arquitectura MVC.
+ * Gestiona toda la interaccion con el usuario sin sentencias SQL.
  */
 public class HeroeUI {
 

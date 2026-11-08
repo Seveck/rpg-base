@@ -5,7 +5,7 @@ import com.rpg.core.RegistroCombate;
 import com.rpg.entities.EstadoEfecto;
 import com.rpg.entities.Personaje;
 
-/** Tarea para efectos periodicos (DoT o HoT) en su propio hilo. */
+/** Tarea para aplicar efectos periodicos en su propio hilo. */
 public class EfectoContinuoTask implements Runnable {
 
     private final Personaje objetivo;

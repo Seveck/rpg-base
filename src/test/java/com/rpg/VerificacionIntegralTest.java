@@ -60,11 +60,11 @@ public class VerificacionIntegralTest {
         totalPruebas++;
         if (probarGestorArchivoLog()) exitosas++;
 
-        // 7. Archivos: Serializacion, ciclos (Personaje <-> Gremio) y campos transient
+        // 7. Archivos: Serializacion, relaciones circulares y campos transient
         totalPruebas++;
         if (probarSerializacionYGrafo()) exitosas++;
 
-        // 8. Archivos: Borrado con File.delete() y Files.deleteIfExists(Path)
+        // 8. Archivos: Borrado de archivos con File y Files
         totalPruebas++;
         if (probarBorradoArchivos()) exitosas++;
 
@@ -135,7 +135,7 @@ public class VerificacionIntegralTest {
             return false;
         }
 
-        // Interrupcion del efecto (simula uso de antidoto)
+        // Interrupcion del efecto al removerlo
         g.quitarEfecto(veneno.getNombre());
         try {
             hiloEfecto.join(500);
@@ -153,14 +153,14 @@ public class VerificacionIntegralTest {
     private static boolean probarSincronizacionPersonaje() {
         System.out.println("\n[TEST 3] Condicion de carrera y sincronizacion de Personaje...");
         Guerrero g = new Guerrero("HeroeSincronizado");
-        // Ajustamos la vida a la mitad (60/120) para que las curaciones no topen con vidaMaxima
+        // Ajuste de vida a la mitad para evitar tope con vidaMaxima
         g.setVida(60);
         int vidaInicial = g.getVida();
         int numHilos = 40;
         CountDownLatch latchInicio = new CountDownLatch(1);
         CountDownLatch latchFin = new CountDownLatch(numHilos * 2);
 
-        // Mitad de hilos aplican danio (5 c/u), mitad curan (5 c/u)
+        // Hilos concurrentes de danio y curacion
         for (int i = 0; i < numHilos; i++) {
             new Thread(() -> {
                 try {
@@ -287,12 +287,12 @@ public class VerificacionIntegralTest {
         } catch (Exception ignored) {}
 
         Gremio gremio = new Gremio("Mesa Redonda");
-        heroe.unirseAGremio(gremio); // Ciclo: heroe referencia a gremio, gremio contiene a heroe
+        heroe.unirseAGremio(gremio); // Ciclo: heroe referencia a gremio y gremio contiene a heroe
 
         PerfilJugador perfil = new PerfilJugador();
         perfil.registrarVictoria();
         perfil.desbloquearLogro("Leyenda");
-        perfil.registrarPartidaSesion(); // campo transient = 1
+        perfil.registrarPartidaSesion(); // campo transient asignado
 
         EstadoPartida estadoOriginal = new EstadoPartida(heroe, perfil, gremio, new Bestiario());
         estadoOriginal.setNotaSesionVolatil("Temporal");

@@ -126,7 +126,7 @@ public class HeroeController {
     }
 
     /**
-     * Transforma un POJO Heroe en un Personaje de juego (Guerrero o Mago).
+     * Instancia un Personaje jugable a partir de los datos del heroe.
      */
     public Personaje crearPersonajeDesdeHeroe(Heroe heroe) {
         if (heroe == null) {
